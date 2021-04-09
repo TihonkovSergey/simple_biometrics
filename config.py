@@ -1,0 +1,7 @@
+LargeFont = ("Verdana", 12)
+
+APP_WIDTH = 800
+APP_HEIGHT = 1200
+
+CANVAS_WIDTH = 600
+CANVAS_HEIGHT = 800
