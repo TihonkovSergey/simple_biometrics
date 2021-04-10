@@ -2,30 +2,39 @@ import cv2
 import numpy as np
 from pathlib import Path
 from copy import deepcopy
+from collections import defaultdict
 
 
-def get_train_test(train_size=9):
-    assert 1 <= train_size <= 10
-
+def get_dataset():
     dataset_path = Path().cwd().parent.parent.joinpath('data/dataset')
     files = dataset_path.glob('*')
-
-    data = {}
+    data = []
+    labels = []
     for file in files:
-        label = file.name.split('.')[0].split('_')[-1]  # for name '398_40.png' label is '40'
-        if label not in data:
-            data[label] = []
+        label = int(file.name.split('.')[0].split('_')[-1])  # for name '398_40.png' label is '40'
         image = cv2.imread(str(file))
-        data[label].append(image)
+        data.append(image)
+        labels.append(label)
+    return data, labels
+
+
+def train_test_split(data, labels, train_size_per_class, random_state=0):
+    assert 1 <= train_size_per_class <= 10
+    assert len(data) == len(labels)
+    np.random.seed(random_state)
+
+    prep_data = defaultdict(list)
+    for image, label in zip(data, labels):
+        prep_data[label].append(image)
 
     train_x = []
     train_y = []
     test_x = []
     test_y = []
-    for label, values in data.items():
+    for label, values in prep_data.items():
         images = deepcopy(values)
         np.random.shuffle(images)
-        train, test = images[:train_size], images[train_size:]
+        train, test = images[:train_size_per_class], images[train_size_per_class:]
         train_x += train
         train_y += [label]*len(train)
         test_x += test
