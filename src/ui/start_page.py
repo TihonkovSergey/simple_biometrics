@@ -1,5 +1,5 @@
 import tkinter as tk
-from config import *
+from src.ui.config import *
 
 
 class StartPage(tk.Frame):
@@ -11,10 +11,10 @@ class StartPage(tk.Frame):
 
         button1 = tk.Button(self, text="Face Detection",
                             command=lambda: controller.show_frame('FaceDetectionPage'), width=20, height=1)
-        button2 = tk.Button(self, text=" Project2 ",
-                            command=lambda: controller.show_frame('FaceDetectionPage'), width=20, height=1)
-        button3 = tk.Button(self, text="   Project3   ",
-                            command=lambda: controller.show_frame('FaceDetectionPage'), width=20, height=1)
+        button2 = tk.Button(self, text="Face Recognition",
+                            command=lambda: controller.show_frame('FaceRecognitionPage'), width=20, height=1)
+        button3 = tk.Button(self, text="---Project3---",
+                            command=lambda: controller.show_frame('FaceRecognitionPage'), width=20, height=1)
 
         button1.pack()
         button2.pack()

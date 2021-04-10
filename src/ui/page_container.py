@@ -1,5 +1,5 @@
 from src.ui import *
-from config import *
+from src.ui.config import *
 
 
 class PageContainer(tk.Tk):
@@ -17,7 +17,7 @@ class PageContainer(tk.Tk):
 
         self.frame = {}
 
-        for F in (StartPage, FaceDetectionPage):
+        for F in (StartPage, FaceDetectionPage, FaceRecognitionPage):
             frame = F(container, self)
 
             self.frame[frame.name] = frame

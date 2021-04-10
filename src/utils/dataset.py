@@ -6,7 +6,7 @@ from collections import defaultdict
 
 
 def get_dataset():
-    dataset_path = Path().cwd().parent.parent.joinpath('data/dataset')
+    dataset_path = Path().cwd().joinpath('data/dataset')
     files = dataset_path.glob('*')
     data = []
     labels = []
@@ -15,7 +15,7 @@ def get_dataset():
         image = cv2.imread(str(file))
         data.append(image)
         labels.append(label)
-    return data, labels
+    return np.array(data), np.array(labels)
 
 
 def train_test_split(data, labels, train_size_per_class, random_state=0):
@@ -39,7 +39,7 @@ def train_test_split(data, labels, train_size_per_class, random_state=0):
         train_y += [label]*len(train)
         test_x += test
         test_y += [label]*len(test)
-    return train_x, train_y, test_x, test_y
+    return np.array(train_x), np.array(train_y), np.array(test_x), np.array(test_y)
 
 
 if __name__ == '__main__':

@@ -1,5 +1,5 @@
 import tkinter as tk
-from config import *
+from src.ui.config import *
 from src.utils import face_detection as fd
 from tkinter import filedialog
 import cv2
