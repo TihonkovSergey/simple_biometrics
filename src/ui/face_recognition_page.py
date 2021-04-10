@@ -1,6 +1,10 @@
 import tkinter as tk
 from src.ui.config import *
-from src.utils.face_recognition import search_best_param
+from src.utils.face_recognition import search_best_param, get_param_depend, get_size_depend
+import matplotlib.pyplot as plt
+from pathlib import Path
+import cv2
+from PIL import Image, ImageTk
 
 
 class FaceRecognitionPage(tk.Frame):
@@ -13,6 +17,8 @@ class FaceRecognitionPage(tk.Frame):
 
         label = tk.Label(self, text="FACE RECOGNITION", font=LargeFont)
         label.pack(pady=10, padx=10)
+        label_choose_method = tk.Label(self, text="Choose method:", font=LargeFont)
+        label_choose_method.pack(pady=10, padx=10)
 
         self.method_var = tk.StringVar()
         self.method_var.set('histogram')
@@ -27,31 +33,35 @@ class FaceRecognitionPage(tk.Frame):
         rb_method4.pack()
         rb_method5.pack()
 
+        label_drawing = tk.Label(self, text='Lets draw a graph of dependence:', font=LargeFont, pady=25)
+        label_drawing.pack()
+
+        self.graph_var = tk.StringVar()
+        self.graph_var.set('param')
+        rb_graph1 = tk.Radiobutton(self, text="Param", value="param", var=self.graph_var)
+        rb_graph2 = tk.Radiobutton(self, text="Size", value="size", var=self.graph_var)
+        rb_graph1.pack()
+        rb_graph2.pack()
+
+        label_size = tk.Label(self, text='Fixed variable:', font=LargeFont)
+        label_size.pack()
+        self.e_size = tk.Entry(self)
+        self.e_size.insert(tk.END, '5')
+        self.e_size.pack()
+
+        self.canvas = tk.Canvas(self, width=GRAPH_WIDTH, height=GRAPH_HEIGHT)
+        self.canvas.pack()
+
+        b_graph = tk.Button(self, text='Draw',
+                            command=lambda: self.draw_graph(), width=25, height=1)
+        b_graph.pack()
+
         b_best_params = tk.Button(self, text="Calculate best params",
                                   command=lambda: self.calc_best_params(), width=25, height=1)
         b_best_params.pack()
 
         self.l_best_params = tk.Label(self, text='', font=LargeFont)
         self.l_best_params.pack(pady=10, padx=10)
-
-        self.graph_var = tk.StringVar()
-        self.graph_var.set('param')
-        rb_graph1 = tk.Radiobutton(self, text="Draw score / param", value="param", var=self.graph_var)
-        rb_graph2 = tk.Radiobutton(self, text="Draw score / train size", value="size", var=self.graph_var)
-        rb_graph1.pack()
-        rb_graph2.pack()
-
-        label_size = tk.Label(self, text='Input fixed variable:', font=LargeFont)
-        label_size.pack()
-        e_size = tk.Entry(self)
-        e_size.pack()
-
-        self.canvas = tk.Canvas(self, width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
-        self.canvas.pack()
-
-        b_graph = tk.Button(self, text='Draw a graph',
-                            command=lambda: self.draw_graph(), width=25, height=1)
-        b_graph.pack()
 
         b_back = tk.Button(self, text="Back to Main Menu",
                            command=lambda: controller.show_frame('StartPage'), width=25, height=1)
@@ -76,7 +86,7 @@ class FaceRecognitionPage(tk.Frame):
                 'step': 2, },
             'scale': {
                 'start': 2,
-                'stop': 64,
+                'stop': 16,
                 'step': 2, },
             'gradient': {
                 'start': 2,
@@ -92,4 +102,36 @@ class FaceRecognitionPage(tk.Frame):
                                           ' {} with train size per class: {}'.format(100 * score, param, size))
 
     def draw_graph(self):
-        pass
+        method = self.method_var.get()
+        tmp_path = Path().cwd().joinpath('data/tmp').joinpath("tmp_graph.png")
+        tmp_path.parent.mkdir(parents=True, exist_ok=True)
+        fig, ax = plt.subplots()
+        param = int(self.e_size.get())
+        if self.graph_var.get() == 'size':
+            x, y = get_size_depend(method, param)
+            ax.set(xlabel='train size', ylabel='accuracy (%)',
+                   title='Size dependence')
+        else:
+            params = {
+                'histogram': [i for i in range(2, 50, 4)],
+                'dft': [i for i in range(10, 64, 4)],
+                'dct': [i for i in range(12, 64, 2)],
+                'scale': [i for i in range(2, 30, 4)],
+                'gradient': [i for i in range(2, 40, 4)],
+            }
+            x, y = get_param_depend(method, param, params[method])
+            ax.set(xlabel='parameter', ylabel='accuracy (%)',
+                   title='Parameter dependence')
+
+        ax.plot(x, 100*y)
+        ax.grid()
+        fig.savefig(tmp_path)
+        image = cv2.imread(str(tmp_path))
+        self.draw_graph_on_canvas(image)
+
+    def draw_graph_on_canvas(self, original_image):
+        image = Image.fromarray(original_image).resize((GRAPH_WIDTH, GRAPH_HEIGHT))
+        image = ImageTk.PhotoImage(image)
+        self.canvas.create_image(0, 0, anchor="nw", image=image)
+        self.canvas.pack()
+        self.mainloop()
