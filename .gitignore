@@ -2,8 +2,6 @@
 dataset_orl
 results
 tmp_*
-*.png
-*.jpg
 
 # idea files
 .idea
