@@ -1,5 +1,4 @@
-import tkinter as tk
-from pages import *
+from src.ui import *
 from config import *
 
 
@@ -31,7 +30,3 @@ class PageContainer(tk.Tk):
         frame = self.frame[cont]
         frame.tkraise()
 
-
-if __name__ == '__main__':
-    app = PageContainer()
-    app.mainloop()

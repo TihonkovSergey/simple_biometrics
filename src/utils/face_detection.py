@@ -5,7 +5,7 @@ from copy import deepcopy
 
 
 def template_matching(original_image, detect='face', return_coords=False):
-	template_path = Path().cwd().joinpath('templates').joinpath('{}.png'.format(detect))
+	template_path = Path().cwd().joinpath('data/templates').joinpath('{}.png'.format(detect))
 	template_image = cv2.imread(str(template_path), 0)
 	h, w = template_image.shape
 
@@ -31,7 +31,7 @@ def viola_jones(original_image, detect='face&eyes'):
 				(column + width, row + height),
 				color,
 				1)
-	pretrained_path = Path().cwd().joinpath('pretrained')
+	pretrained_path = Path().cwd().joinpath('data/pretrained')
 
 	image = deepcopy(original_image)
 	grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)

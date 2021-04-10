@@ -1,6 +1,6 @@
 import tkinter as tk
 from config import *
-from utils import face_detection as fd
+from src.utils import face_detection as fd
 from tkinter import filedialog
 import cv2
 from PIL import Image, ImageTk

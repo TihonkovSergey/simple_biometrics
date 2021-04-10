@@ -7,7 +7,7 @@ from copy import deepcopy
 def get_train_test(train_size=9):
     assert 1 <= train_size <= 10
 
-    dataset_path = Path().cwd().parent.joinpath('dataset')
+    dataset_path = Path().cwd().parent.parent.joinpath('data/dataset')
     files = dataset_path.glob('*')
 
     data = {}

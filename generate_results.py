@@ -1,10 +1,8 @@
-from pathlib import Path
-import cv2
-from utils.face_detection import *
+from src.utils.face_detection import *
 
 
 def generate(result_path, func=template_matching, **kwargs):
-    dataset_dir = Path().cwd().joinpath('dataset')
+    dataset_dir = Path().cwd().joinpath('data/dataset')
     if not dataset_dir.exists():
         raise FileNotFoundError('Dataset does not exist')
 
