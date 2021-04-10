@@ -4,9 +4,10 @@ from src.utils.dataset import get_dataset, train_test_split
 
 
 class FaceClassifier(object):
-    def __init__(self, method, **method_kwargs):
+    def __init__(self, method, *method_args, **method_kwargs):
         self.train = None
         self.labels = None
+        self.method_args = method_args
         self.method_kwargs = method_kwargs
 
         methods = {'histogram': self._histogram,
@@ -22,19 +23,19 @@ class FaceClassifier(object):
         self.labels = labels
         self.train = []
         for image, label in zip(data, labels):
-            feature = self.method(image, **self.method_kwargs)
+            feature = self.method(image, *self.method_args, **self.method_kwargs)
             self.train.append(feature)
 
     def predict(self, data):
         pred = []
         for image in data:
             pred.append(self._predict_one(image))
-        return pred
+        return np.array(pred)
 
     def _predict_one(self, image):
-        assert self.train and self.labels
+        assert self.train is not None and self.labels is not None
 
-        feature = self.method(image, **self.method_kwargs)
+        feature = self.method(image, *self.method_args, **self.method_kwargs)
 
         best_label = self.labels[0]
         min_dist = 1e15
@@ -70,9 +71,9 @@ class FaceClassifier(object):
         return cos
 
     @staticmethod
-    def _gradient(img, smooth=16):
-        h = img.shape[0]
-        x = img.copy().astype(np.int32)
+    def _gradient(image, smooth=16):
+        h = image.shape[0]
+        x = image.copy().astype(np.int32)
         grads = []
         for curr in range(smooth, h - smooth):
             top = x[curr - smooth:curr, :]
@@ -81,33 +82,57 @@ class FaceClassifier(object):
         return np.array(grads)
 
     @staticmethod
-    def _scale(img, scale=2):
-        h, w = img.shape[0], img.shape[1]
+    def _scale(image, scale=2):
+        h, w = image.shape[0], image.shape[1]
         m, n = h // scale, w // scale
-        x = img.copy().astype(np.int32)
-        img_sc = np.zeros((m, n))
+        x = image.copy().astype(np.int32)
+        scaled_image = np.zeros((m, n))
         for i in range(m):
             for j in range(n):
-                img_sc[i, j] = np.sum(x[i * scale:min((i + 1) * scale, h), j * scale:min((j + 1) * scale, w)])
-        return np.asarray(img_sc).reshape(-1)
+                scaled_image[i, j] = np.sum(x[i * scale:min((i + 1) * scale, h), j * scale:min((j + 1) * scale, w)])
+        return np.asarray(scaled_image).reshape(-1)
 
 
-def grid_search(method, params):
-    pass
+def search_best_param(method, start, stop, step, repeats=3, verbose=0):
+    data, labels = get_dataset()
+    results = []
+
+    iterations = 9*int((stop - start + 1)/step + 1)*repeats
+    it = 0
+    for size in range(1, 10):
+        for param in range(start, stop+step, step):
+            scores = []
+            for seed in range(repeats):
+                it += 1
+                train_X, train_y, test_X, test_y = train_test_split(data, labels,
+                                                                    train_size_per_class=size,
+                                                                    random_state=seed)
+                clf = FaceClassifier(method, param)
+                clf.fit(train_X, train_y)
+                pred = clf.predict(test_X)
+                correct = (pred == test_y).sum()
+                scores.append(correct/len(pred))
+            results.append({'param': param, 'size': size, 'mean': np.mean(scores), 'std': np.std(scores)})
+            if verbose and it % verbose == 0:
+                print('{:.1f}% done'.format(100*it/iterations))
+
+    best_params, best_score = {}, 0
+    for res in results:
+        if res['mean'] > best_score:
+            best_score = res['mean']
+            best_params = {'param': res['param'], 'size': res['size']}
+
+    results = {
+        'cv_results': results,
+        'best_params': best_params,
+        'best_score': best_score,
+    }
+    return results
 
 
 if __name__ == '__main__':
-    data, labels = get_dataset()
-    train_X, train_y, test_X, test_y = train_test_split(data, labels, train_size_per_class=6)
+    search_results = search_best_param('gradient', start=2, stop=64, step=4, verbose=10)
+    print('Best score: {} with params: {}'.format(search_results['best_score'], search_results['best_params']))
 
-    clf = FaceClassifier(method='scale', scale=8)
-    clf.fit(train_X, train_y)
-
-    pred = clf.predict(test_X)
-
-    print(test_y)
-    print(pred)
-    correct = 0
-    for test, pr in zip(test_y, pred):
-        correct += (test == pr)
-    print('Accuracy on test: {}'.format(100 * correct / len(test_y)))
+    for res in search_results['cv_results']:
+        print(res)
