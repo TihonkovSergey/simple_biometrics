@@ -93,32 +93,21 @@ class FaceClassifier(object):
         return np.asarray(scaled_image).reshape(-1)
 
 
-def search_best_param(method, start, stop, step, repeats=3, verbose=0):
+def search_best_param(method, start, stop, step, repeats=1):
     data, labels = get_dataset()
     results = []
 
-    iterations = 9*int((stop - start + 1)/step + 1)*repeats
-    it = 0
     for size in range(1, 10):
         for param in range(start, stop+step, step):
-            scores = []
-            for seed in range(repeats):
-                it += 1
-                train_X, train_y, test_X, test_y = train_test_split(data, labels,
-                                                                    train_size_per_class=size,
-                                                                    random_state=seed)
-                clf = FaceClassifier(method, param)
-                clf.fit(train_X, train_y)
-                pred = clf.predict(test_X)
-                correct = (pred == test_y).sum()
-                scores.append(correct/len(pred))
+            clf = FaceClassifier(method, param)
+            scores = evaluate_model(data, labels, clf, size, repeats=repeats)
+
             results.append({'param': param, 'size': size, 'mean': np.mean(scores), 'std': np.std(scores)})
-            if verbose and it % verbose == 0:
-                print('{:.1f}% done'.format(100*it/iterations))
 
     best_params, best_score = {}, 0
+    best_size = 10
     for res in results:
-        if res['mean'] > best_score:
+        if res['mean'] > best_score or (res['mean'] == best_score and res['size'] < best_size):
             best_score = res['mean']
             best_params = {'param': res['param'], 'size': res['size']}
 
@@ -130,9 +119,40 @@ def search_best_param(method, start, stop, step, repeats=3, verbose=0):
     return results
 
 
-if __name__ == '__main__':
-    search_results = search_best_param('gradient', start=2, stop=64, step=4, verbose=10)
-    print('Best score: {} with params: {}'.format(search_results['best_score'], search_results['best_params']))
+def evaluate_model(data, labels, model, train_size_per_class, repeats=1):
+    scores = []
+    for seed in range(repeats):
+        train_X, train_y, test_X, test_y = train_test_split(data, labels,
+                                                            train_size_per_class=train_size_per_class,
+                                                            random_state=seed)
+        model.fit(train_X, train_y)
+        pred = model.predict(test_X)
+        correct = (pred == test_y).sum()
+        scores.append(correct / len(pred))
+    return np.array(scores)
 
-    for res in search_results['cv_results']:
-        print(res)
+
+def get_size_depend(method, param):
+    result = [[], []]
+    clf = FaceClassifier(method, param)
+    data, labels = get_dataset()
+    for size in range(1, 10):
+        scores = evaluate_model(data, labels, clf, size, repeats=1)
+        result[0].append(size)
+        result[1].append(np.mean(scores))
+    return np.array(result)
+
+
+def get_param_depend(method, size, params):
+    result = [[], []]
+    data, labels = get_dataset()
+    for param in params:
+        clf = FaceClassifier(method, param)
+        scores = evaluate_model(data, labels, clf, size, repeats=1)
+        result[0].append(param)
+        result[1].append(np.mean(scores))
+    return np.array(result)
+
+
+if __name__ == '__main__':
+    pass
