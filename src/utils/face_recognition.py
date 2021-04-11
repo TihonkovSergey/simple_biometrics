@@ -1,6 +1,71 @@
 import numpy as np
 from scipy.fftpack import dct
 from src.utils.dataset import get_dataset, train_test_split
+from copy import copy
+
+params_grid = {
+    'histogram': [i for i in range(2, 50, 4)],
+    'dft': [i for i in range(10, 64, 4)],
+    'dct': [i for i in range(12, 64, 2)],
+    'scale': [i for i in range(2, 30, 4)],
+    'gradient': [i for i in range(2, 40, 4)], }
+
+best_system_params_for_size = {
+    1: {
+        'histogram': 38,
+        'dft': 62,
+        'dct': 42,
+        'scale': 2,
+        'gradient': 10, },
+    2: {
+        'histogram': 46,
+        'dft': 54,
+        'dct': 18,
+        'scale': 10,
+        'gradient': 10, },
+    3: {
+        'histogram': 18,
+        'dft': 58,
+        'dct': 12,
+        'scale': 10,
+        'gradient': 10, },
+    4: {
+        'histogram': 18,
+        'dft': 58,
+        'dct': 12,
+        'scale': 10,
+        'gradient': 10, },
+    5: {
+        'histogram': 26,
+        'dft': 58,
+        'dct': 12,
+        'scale': 10,
+        'gradient': 10, },
+    6: {
+        'histogram': 18,
+        'dft': 46,
+        'dct': 12,
+        'scale': 10,
+        'gradient': 10, },
+    7: {
+        'histogram': 18,
+        'dft': 62,
+        'dct': 12,
+        'scale': 10,
+        'gradient': 10, },
+    8: {
+        'histogram': 10,
+        'dft': 62,
+        'dct': 12,
+        'scale': 10,
+        'gradient': 6, },
+    9: {
+        'histogram': 10,
+        'dft': 30,
+        'dct': 12,
+        'scale': 10,
+        'gradient': 6, },
+}
 
 
 class FaceClassifier(object):
@@ -20,7 +85,7 @@ class FaceClassifier(object):
 
     def fit(self, data, labels):
         assert len(data) == len(labels)
-        self.labels = labels
+        self.labels = copy(labels)
         self.train = []
         for image, label in zip(data, labels):
             feature = self.method(image, *self.method_args, **self.method_kwargs)
@@ -98,7 +163,7 @@ def search_best_param(method, start, stop, step, repeats=1):
     results = []
 
     for size in range(1, 10):
-        for param in range(start, stop+step, step):
+        for param in range(start, stop + step, step):
             clf = FaceClassifier(method, param)
             scores = evaluate_model(data, labels, clf, size, repeats=repeats)
 
