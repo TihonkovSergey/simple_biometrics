@@ -17,10 +17,10 @@ class PageContainer(tk.Tk):
 
         self.frame = {}
 
-        for F in (StartPage, FaceDetectionPage, FaceRecognitionPage):
+        for F in (StartPage, FaceDetectionPage, FaceRecognitionPage, FaceRecognitionSystemPage):
             frame = F(container, self)
 
-            self.frame[frame.name] = frame
+            self.frame[type(frame).__name__] = frame
 
             frame.grid(row=0, column=0, sticky='nsew')
 

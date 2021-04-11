@@ -8,7 +8,6 @@ from PIL import Image, ImageTk
 
 class FaceDetectionPage(tk.Frame):
     def __init__(self, parent, controller, *args, **kwargs):
-        self.name = 'FaceDetectionPage'
         self.image = None
         super().__init__(parent, *args, **kwargs)
         self.canvas = tk.Canvas(self, width=CANVAS_WIDTH, height=CANVAS_HEIGHT)

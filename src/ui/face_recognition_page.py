@@ -1,6 +1,6 @@
 import tkinter as tk
 from src.ui.config import *
-from src.utils.face_recognition import search_best_param, get_param_depend, get_size_depend
+from src.utils.face_recognition import *
 import matplotlib.pyplot as plt
 from pathlib import Path
 import cv2
@@ -9,8 +9,6 @@ from PIL import Image, ImageTk
 
 class FaceRecognitionPage(tk.Frame):
     def __init__(self, parent, controller, *args, **kwargs):
-        self.name = 'FaceRecognitionPage'
-        self.image = None
         self.parent = parent
         super().__init__(parent, *args, **kwargs)
         self.canvas = tk.Canvas(self, width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
@@ -112,14 +110,8 @@ class FaceRecognitionPage(tk.Frame):
             ax.set(xlabel='train size', ylabel='accuracy (%)',
                    title='Size dependence')
         else:
-            params = {
-                'histogram': [i for i in range(2, 50, 4)],
-                'dft': [i for i in range(10, 64, 4)],
-                'dct': [i for i in range(12, 64, 2)],
-                'scale': [i for i in range(2, 30, 4)],
-                'gradient': [i for i in range(2, 40, 4)],
-            }
-            x, y = get_param_depend(method, param, params[method])
+
+            x, y = get_param_depend(method, param, params_grid[method])
             ax.set(xlabel='parameter', ylabel='accuracy (%)',
                    title='Parameter dependence')
 
