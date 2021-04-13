@@ -5,6 +5,8 @@ from src.utils.face_recognition_system import FaceClassifierSystem
 import cv2
 from PIL import Image, ImageTk
 from tkinter import filedialog
+import matplotlib.pyplot as plt
+from pathlib import Path
 
 
 class FaceRecognitionSystemPage(tk.Frame):
@@ -28,6 +30,10 @@ class FaceRecognitionSystemPage(tk.Frame):
 
         self.l_best_params = tk.Label(self, text='', font=LargeFont)
         self.l_best_params.pack(pady=10, padx=10)
+
+        b_draw_size_depend = tk.Button(self, text="Draw size dependence",
+                                       command=lambda: self.draw_size_depend(), width=25, height=1)
+        b_draw_size_depend.pack()
 
         b_oi = tk.Button(self, text="Open image",
                          command=lambda: self.open_image(), width=25, height=1)
@@ -82,3 +88,23 @@ class FaceRecognitionSystemPage(tk.Frame):
         clf.fit(data, labels)
         label = clf.predict([self.image])
         self.label_class.configure(text="CLASS: {}".format(label))
+
+    def draw_size_depend(self):
+        data, labels = get_dataset()
+        x, y = [], []
+        for size in range(1, 10):
+            params = best_system_params_for_size[size]
+            clf = FaceClassifierSystem(params)
+            scores = evaluate_model(model=clf, train_size_per_class=size, data=data, labels=labels)
+            x.append(size)
+            y.append(scores.mean())
+        tmp_path = Path().cwd().joinpath('data/tmp').joinpath("tmp_graph.png")
+        tmp_path.parent.mkdir(parents=True, exist_ok=True)
+        fig, ax = plt.subplots()
+        ax.set(xlabel='train size', ylabel='accuracy (%)',
+               title='Size dependence')
+        ax.plot(x, 100 * np.array(y))
+        ax.grid()
+        fig.savefig(tmp_path)
+        image = cv2.imread(str(tmp_path))
+        self.draw_image_on_canvas(image)
