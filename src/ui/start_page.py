@@ -14,7 +14,10 @@ class StartPage(tk.Frame):
                             command=lambda: controller.show_frame('FaceRecognitionPage'), width=20, height=1)
         button3 = tk.Button(self, text="Face Recognition System",
                             command=lambda: controller.show_frame('FaceRecognitionSystemPage'), width=20, height=1)
+        button4 = tk.Button(self, text="Visualize Test",
+                            command=lambda: controller.show_frame('VisualizeTestPage'), width=20, height=1)
 
         button1.pack()
         button2.pack()
         button3.pack()
+        button4.pack()

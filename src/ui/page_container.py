@@ -1,4 +1,5 @@
-from src.ui import *
+import tkinter as tk
+from src.ui import StartPage, FaceDetectionPage, FaceRecognitionPage, FaceRecognitionSystemPage, VisualizeTestPage
 from src.ui.config import *
 
 
@@ -27,6 +28,11 @@ class PageContainer(tk.Tk):
         self.show_frame('StartPage')
 
     def show_frame(self, cont):
+        if cont == 'VisualizeTestPage':
+            self.destroy()
+            app = VisualizeTestPage(controller=self)
+            app.mainloop()
+            return
+
         frame = self.frame[cont]
         frame.tkraise()
-
