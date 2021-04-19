@@ -16,18 +16,36 @@ class FaceClassifierSystem(object):
         for clf in self.classifiers.values():
             clf.fit(data, labels)
 
-    def predict(self, data):
-        all_pred = []
-        for clf in self.classifiers.values():
-            all_pred.append(clf.predict(data))
+    def predict(self, data, full_report=False):
+        if full_report:
+            system_result = []
+            results = []
+            for clf in self.classifiers.values():
+                results.append(clf.predict(data, nearest_image=True))
 
-        pred = []
-        all_pred = np.array(all_pred)
-        for i in range(all_pred.shape[1]):
-            col = all_pred[:, i]
-            c = Counter(col).most_common()[0][0]
-            pred.append(c)
-        return np.array(pred)
+            for j in range(len(results[0])):
+                votes = []
+                for i in range(len(results)):
+                    v = results[i][j]
+                    votes.append(v['label'])
+                major_vote = Counter(votes).most_common()[0][0]
+                system_result.append({'method': 'system',
+                                      'label': major_vote,
+                                      'image': data[j], })
+            results.append(system_result)
+            return results
+        else:
+            results = []
+            for clf in self.classifiers.values():
+                results.append(clf.predict(data))
+
+            pred = []
+            results = np.array(results)
+            for i in range(results.shape[1]):
+                votes = results[:, i]
+                major_vote = Counter(votes).most_common()[0][0]
+                pred.append(major_vote)
+            return np.array(pred)
 
 
 if __name__ == "__main__":
