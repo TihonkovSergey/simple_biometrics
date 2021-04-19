@@ -70,7 +70,8 @@ best_system_params_for_size = {
 
 class FaceClassifier(object):
     def __init__(self, method, *method_args, **method_kwargs):
-        self.train = None
+        self.train_features = None
+        self.train_images = None
         self.labels = None
         self.method_args = method_args
         self.method_kwargs = method_kwargs
@@ -81,34 +82,41 @@ class FaceClassifier(object):
                    'gradient': self._gradient,
                    'scale': self._scale, }
         assert method in methods
+        self.method_name = method
         self.method = methods[method]
 
     def fit(self, data, labels):
         assert len(data) == len(labels)
         self.labels = copy(labels)
-        self.train = []
+        self.train_features = []
+        self.train_images = []
         for image, label in zip(data, labels):
             feature = self.method(image, *self.method_args, **self.method_kwargs)
-            self.train.append(feature)
+            self.train_features.append(feature)
+            self.train_images.append(image)
 
-    def predict(self, data):
+    def predict(self, data, nearest_image=False):
         pred = []
         for image in data:
-            pred.append(self._predict_one(image))
+            pred.append(self._predict_one(image, nearest_image=nearest_image))
         return np.array(pred)
 
-    def _predict_one(self, image):
-        assert self.train is not None and self.labels is not None
+    def _predict_one(self, image, nearest_image=False):
+        assert self.train_features is not None and self.labels is not None and self.train_images is not None
 
         feature = self.method(image, *self.method_args, **self.method_kwargs)
 
         best_label = self.labels[0]
+        best_image = None
         min_dist = 1e15
-        for x, label in zip(self.train, self.labels):
+        for x, label, train_image in zip(self.train_features, self.labels, self.train_images):
             dist = self._distance(feature, x)
             if dist < min_dist:
                 min_dist = dist
                 best_label = label
+                best_image = train_image
+        if nearest_image:
+            return {'label': best_label, 'image': best_image, 'method': self.method_name}
         return best_label
 
     @staticmethod
