@@ -135,15 +135,19 @@ class VisualizeTestPage(tk.Tk):
                            command=lambda: self._next_slide(), width=20, height=1)
         b_next.grid(row=9, column=2)
 
+        b_all = tk.Button(self, text="All",
+                          command=lambda: self._show_all(), width=20, height=1)
+        b_all.grid(row=9, column=3)
+
         b_main_menu = tk.Button(self, text="Back to Main Menu",
                                 command=lambda: self._main_menu(), width=20, height=1)
-        b_main_menu.grid(row=9, column=3)
+        b_main_menu.grid(row=10, column=3)
 
         self.is_run = False
         self.vis_connector = None
 
         for key in self.canvas:
-            self._set_black(key)
+            self._set_empty_image(key)
 
     def _main_menu(self):
         if self.controller is None:
@@ -180,7 +184,7 @@ class VisualizeTestPage(tk.Tk):
                     color = '#f00'  # red
                 self._update_image(image, method, frame_color=color)
             else:
-                self._set_black(method)
+                self._set_empty_image(method)
 
     def _prev_slide(self):
         self._check_vis_connector()
@@ -192,6 +196,13 @@ class VisualizeTestPage(tk.Tk):
     def _next_slide(self):
         self._check_vis_connector()
         results, lines = self.vis_connector.get_next()
+        if results is not None:
+            self._update_many_images(results)
+            self._plot_lines(lines)
+
+    def _show_all(self):
+        self._check_vis_connector()
+        results, lines = self.vis_connector.get_all()
         if results is not None:
             self._update_many_images(results)
             self._plot_lines(lines)
@@ -212,8 +223,8 @@ class VisualizeTestPage(tk.Tk):
     def _get_methods_to_draw(self):
         return {method: self.var[method].get() for method in self.methods_list}
 
-    def _set_black(self, method):
-        path = Path().cwd().joinpath('data/x_image.png')
+    def _set_empty_image(self, method):
+        path = Path().cwd().joinpath('data/empty_image.png')
         image = cv2.imread(str(path))
         self._update_image(image, method)
 

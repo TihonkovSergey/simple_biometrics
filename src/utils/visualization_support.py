@@ -61,3 +61,7 @@ class VisualizeConnector(object):
             return None, None
         self.head_index -= 1
         return self._get_result_by_index(self.head_index - 1)
+
+    def get_all(self):
+        self.head_index = len(self.test_images)
+        return self._get_result_by_index(self.head_index - 1)
