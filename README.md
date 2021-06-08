@@ -1,3 +1,6 @@
+# Face detection and recognition app. 
+Practice of the SPBU course "Applied Problems of Modern Computer Systems Construction".
+
 # How to install project requirements:
 1) clone this repository
 2) activate your virtualenv
